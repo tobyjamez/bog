@@ -16,13 +16,16 @@ def generate():
 def new():
     return render_template("new.html")
 
-@app.route("/create")
+@app.route("/create", methods=["GET", "POST"])
 def create():
     name = request.form['name']
     tiles = generate_tiles()
 
     with open("boards.bog", "rb") as board_file:
-        boards = pickle.load(board_file)
+        try:
+            boards = pickle.load(board_file)
+        except(pickle.UnpicklingError):  # First time?
+            boards = dict()
 
     boards[name] = tiles
 
@@ -31,8 +34,12 @@ def create():
 
     return render_template("game.html", tiles=tiles)
 
-@app.route("/join")
+@app.route("/join", methods=["GET", "POST"])
 def join():
+    return render_template("join.html")
+
+@app.route("/game", methods=["GET", "POST"])
+def game():
     with open("boards.bog", "rb") as board_file:
-        tiles = pickle.load(boards)[request.form['name']]
+        tiles = pickle.load(board_file)[request.form['name']]
     return render_template("game.html", tiles=tiles)
