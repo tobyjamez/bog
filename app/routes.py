@@ -1,6 +1,7 @@
 from flask import render_template, request
 from app import app
 from app.generate import generate_tiles
+import pickle
 
 @app.route("/")
 def index():
@@ -18,8 +19,20 @@ def new():
 @app.route("/create")
 def create():
     name = request.form['name']
-    return render_template("name.html")
+    tiles = generate_tiles()
+
+    with open("boards.bog", "rb") as board_file:
+        boards = pickle.load(board_file)
+
+    boards[name] = tiles
+
+    with open("boards.bog", "wb") as board_file:
+        pickle.dump(boards, board_file)
+
+    return render_template("game.html", tiles=tiles)
 
 @app.route("/join")
 def join():
-    return render_template("join.html")
+    with open("boards.bog", "rb") as board_file:
+        tiles = pickle.load(boards)[request.form['name']]
+    return render_template("game.html", tiles=tiles)
